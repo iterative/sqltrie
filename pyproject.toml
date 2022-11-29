@@ -63,8 +63,16 @@ warn_redundant_casts = true
 warn_unreachable = true
 files = ["src", "tests"]
 
+[tool.pylint.master]
+load-plugins = ["pylint_pytest"]
+
 [tool.pylint.message_control]
 enable = ["c-extension-no-member", "no-else-return"]
+disable = [
+    "fixme",
+    "missing-function-docstring", "missing-module-docstring",
+    "missing-class-docstring",
+]
 
 [tool.pylint.variables]
 dummy-variables-rgx = "_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_"
@@ -76,3 +84,23 @@ ignore-words-list = " "
 [tool.bandit]
 exclude_dirs = ["tests"]
 skips = ["B101"]
+
+[tool.sqlfluff.core]
+dialect = "sqlite"
+exclude_rules = "L031"
+
+[tool.sqlfluff.rules]
+tab_space_size = 4
+max_line_length = 80
+indent_unit = "space"
+allow_scalar = true
+single_table_references = "consistent"
+unquoted_identifiers_policy = "all"
+
+[tool.sqlfluff.rules.L010]
+capitalisation_policy = "upper"
+
+[tool.sqlfluff.rules.L029]
+# these are not reserved in sqlite,
+# see https://www.sqlite.org/lang_keywords.html
+ignore_words = ["name", "value", "depth"]
