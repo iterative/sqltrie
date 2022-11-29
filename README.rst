@@ -1,5 +1,5 @@
 SQLTrie
-=======
+========
 
 |PyPI| |Status| |Python Version| |License|
 
