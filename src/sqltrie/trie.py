@@ -1,5 +1,8 @@
-from collections.abc import MutableMapping
 from abc import abstractmethod
+from collections.abc import MutableMapping
+from typing import Iterator, NamedTuple, Optional, Tuple, Union
+
+from attrs import define
 
 
 class ShortKeyError(KeyError):
@@ -7,104 +10,106 @@ class ShortKeyError(KeyError):
     but does not have a value associated with itself."""
 
 
+TrieKey = Union[Tuple[()], Tuple[str]]
+TrieStep = Tuple[Optional[TrieKey], Optional[bytes]]
+
+
+class TrieNode(NamedTuple):
+    key: TrieKey
+    value: Optional[bytes]
+
+
+ADD = "add"
+MODIFY = "modify"
+RENAME = "rename"
+DELETE = "delete"
+UNCHANGED = "unchanged"
+
+
+@define(frozen=True, hash=True, order=True)
+class Change:
+    typ: str
+    old: Optional[TrieNode]
+    new: Optional[TrieNode]
+
+    @property
+    def key(self) -> TrieKey:
+        if self.typ == RENAME:
+            raise ValueError
+
+        if self.typ == ADD:
+            entry = self.new
+        else:
+            entry = self.old
+
+        assert entry
+        assert entry.key
+        return entry.key
+
+    def __bool__(self) -> bool:
+        return self.typ != UNCHANGED
+
+
 class AbstractTrie(MutableMapping):
     def __init__(self, *args, **kwargs):
         self.update(*args, **kwargs)
 
-    def enable_sorting(self, enable=True):
-        raise NotImplementedError
-
-    def clear(self):
-        raise NotImplementedError
-
-    def update(self, *args, **kwargs):  # pylint: disable=arguments-differ
-        raise NotImplementedError
-
-    def merge(self, other, overwrite=False):
-        raise NotImplementedError
-
-    def copy(self, __make_copy=lambda x: x):
-        raise NotImplementedError
-
-    def __copy__(self):
-        return self.copy()
-
-    def __deepcopy__(self, memo):
-        return self.copy(lambda x: _copy.deepcopy(x, memo))
-
     @classmethod
-    def fromkeys(cls, keys, value=None):
-        raise NotImplementedError
-
-    def __iter__(self):
-        return self.iterkeys()
-
-    def iteritems(self, prefix=None, shallow=False):
-        raise NotImplementedError
-
-    def iterkeys(self, prefix=None, shallow=False):
-        raise NotImplementedError
-
-    def itervalues(self, prefix=None, shallow=False):
-        raise NotImplementedError
-
-    def items(self, prefix=None, shallow=False):
-        return list(self.iteritems(prefix=prefix, shallow=shallow))
-
-    def keys(self, prefix=None, shallow=False):
-        return list(self.iterkeys(prefix=prefix, shallow=shallow))
-
-    def values(self, prefix=None, shallow=False):
-        return list(self.itervalues(prefix=prefix, shallow=shallow))
-
-    def __len__(self):
-        raise NotImplementedError
-
-    def __bool__(self):
-        raise NotImplementedError
-
-    __nonzero__ = __bool__
-    __hash__ = None
-
-    def has_node(self, key):
-        raise NotImplementedError
-
-    def has_key(self, key):
-        return bool(self.has_node(key) & self.HAS_VALUE)
-
-    def has_subtrie(self, key):
-        return bool(self.has_node(key) & self.HAS_SUBTRIE)
-
-    def __getitem__(self, key_or_slice):
-        raise NotImplementedError
-
-    def __setitem__(self, key_or_slice, value):
-        raise NotImplementedError
-
-    def __delitem__(self, key_or_slice):
-        raise NotImplementedError
-
-    def setdefault(self, key, default=None):
-        raise NotImplementedError
-
-    def pop(self, key, default=None):
-        raise NotImplementedError
-
-    def popitem(self):
-        raise NotImplementedError
-
-    def walk_towards(self, key):
-        raise NotImplementedError
-
-    def prefixes(self, key):
-        raise NotImplementedError
-
-    def shortest_prefix(self, key):
-        raise NotImplementedError
-
-    def longest_prefix(self, key):
-        raise NotImplementedError
-
-    def traverse(self, node_factory, prefix=None):
+    @abstractmethod
+    def open(cls, path: str) -> "AbstractTrie":
         pass
 
+    @abstractmethod
+    def close(self) -> None:
+        pass
+
+    @abstractmethod
+    def commit(self) -> None:
+        pass
+
+    @abstractmethod
+    def rollback(self) -> None:
+        pass
+
+    @abstractmethod
+    def items(  # type: ignore
+        self, prefix: Optional[TrieKey] = None, shallow: Optional[bool] = False
+    ) -> Iterator[Tuple[TrieKey, bytes]]:
+        pass
+
+    @abstractmethod
+    def view(self, key: Optional[TrieKey] = None) -> "AbstractTrie":
+        pass
+
+    @abstractmethod
+    def has_node(self, key: TrieKey) -> bool:
+        pass
+
+    @abstractmethod
+    def prefixes(self, key: TrieKey) -> Iterator[TrieStep]:
+        pass
+
+    @abstractmethod
+    def shortest_prefix(self, key: TrieKey) -> Optional[TrieStep]:
+        pass
+
+    @abstractmethod
+    def longest_prefix(self, key: TrieKey) -> Optional[TrieStep]:
+        pass
+
+    @abstractmethod
+    # pylint: disable-next=invalid-name
+    def ls(self, key: TrieKey) -> Iterator[TrieKey]:
+        pass
+
+    @abstractmethod
+    def traverse(
+        self, node_factory, prefix: Optional[TrieKey]
+    ) -> Iterator[Tuple[TrieKey, bytes]]:
+        pass
+
+    @abstractmethod
+    def diff(
+        self, old: TrieKey, new: TrieKey, with_unchanged: bool = False
+    ) -> Iterator[Change]:
+        pass
