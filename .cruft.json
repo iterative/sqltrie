@@ -1,0 +1,23 @@
+{
+  "template": "https://github.com/iterative/py-template",
+  "commit": "75abeda8b405100ca48820bb33191a85de9f446f",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "project_name": "sqltrie",
+      "package_name": "sqltrie",
+      "friendly_name": "SQLTrie",
+      "author": "Ruslan Kuprieiev",
+      "email": "ruslan@iterative.ai",
+      "github_user": "efiop",
+      "version": "0.0.0",
+      "copyright_year": "2022",
+      "license": "Apache-2.0",
+      "docs": "False",
+      "short_description": "SQL-based prefix tree inspired by pygtrie and python-diskcache",
+      "development_status": "Development Status :: 1 - Planning",
+      "_template": "https://github.com/iterative/py-template"
+    }
+  },
+  "directory": null
+}
