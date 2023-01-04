@@ -1,3 +1,4 @@
+from .pygtrie import PyGTrie  # noqa: F401, pylint: disable=unused-import
 from .serialized import (  # noqa: F401, pylint: disable=unused-import
     JSONTrie,
     SerializedTrie,
