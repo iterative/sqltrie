@@ -3,12 +3,7 @@ from collections.abc import MutableMapping
 from typing import Iterator, NamedTuple, Optional, Tuple, Union
 
 from attrs import define
-
-
-class ShortKeyError(KeyError):
-    """Raised when given key is a prefix of an existing longer key
-    but does not have a value associated with itself."""
-
+from pygtrie import ShortKeyError  # noqa: F401, pylint: disable=unused-import
 
 TrieKey = Union[Tuple[()], Tuple[str]]
 TrieStep = Tuple[Optional[TrieKey], Optional[bytes]]
