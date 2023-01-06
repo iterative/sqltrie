@@ -166,7 +166,7 @@ class SQLiteTrie(AbstractTrie):
             INSERT INTO
                 nodes (pid, name, has_value, value)
                 VALUES (?1, ?2, True, ?3)
-                ON CONFLICT (pid, name) DO UPDATE SET value=?3
+                ON CONFLICT (pid, name) DO UPDATE SET has_value=True, value=?3
             """,
             (
                 pid,

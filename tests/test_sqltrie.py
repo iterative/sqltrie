@@ -88,6 +88,24 @@ def test_trie(cls):
     ]
 
 
+@pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
+def test_set_get(cls):
+    trie = cls()
+
+    trie[("foo", "bar")] = b"1"
+    with pytest.raises(ShortKeyError):
+        trie[()]  # pylint: disable=pointless-statement
+    with pytest.raises(ShortKeyError):
+        trie[("foo",)]  # pylint: disable=pointless-statement
+    assert trie[("foo", "bar")] == b"1"
+
+    trie[("foo",)] = b"2"
+    with pytest.raises(ShortKeyError):
+        trie[()]  # pylint: disable=pointless-statement
+    assert trie[("foo",)] == b"2"
+    assert trie[("foo", "bar")] == b"1"
+
+
 def test_open(tmp_path):
     path = os.fspath(tmp_path / "db")
     trie = SQLiteTrie.open(path)
