@@ -1,11 +1,20 @@
-from pygtrie import Trie as _Trie
+import pygtrie
 
-from .trie import ADD, DELETE, MODIFY, UNCHANGED, AbstractTrie, Change
+from .trie import (
+    ADD,
+    DELETE,
+    MODIFY,
+    UNCHANGED,
+    AbstractTrie,
+    Change,
+    ShortKeyError,
+    TrieNode,
+)
 
 
 class PyGTrie(AbstractTrie):
     def __init__(self, *args, **kwargs):
-        self._trie = _Trie()
+        self._trie = pygtrie.Trie()
         super().__init__(*args, **kwargs)
 
     @classmethod
@@ -28,7 +37,10 @@ class PyGTrie(AbstractTrie):
         yield from (key for key, _ in self.items())
 
     def __getitem__(self, key):
-        return self._trie[key]
+        try:
+            return self._trie[key]
+        except pygtrie.ShortKeyError as exc:
+            raise ShortKeyError(key) from exc
 
     def __delitem__(self, key):
         del self._trie[key]
@@ -53,7 +65,10 @@ class PyGTrie(AbstractTrie):
         return self._trie.shortest_prefix(key)
 
     def longest_prefix(self, key):
-        return self._trie.longest_prefix(key)
+        ret = self._trie.longest_prefix(key)
+        if ret == pygtrie.Trie._NONE_STEP:  # pylint: disable=protected-access
+            return None
+        return tuple(ret)
 
     def traverse(self, node_factory, prefix=None):
         kwargs = {}
@@ -100,4 +115,10 @@ class PyGTrie(AbstractTrie):
             elif not with_unchanged:
                 continue
 
-            yield Change(typ, old_entry, new_entry)
+            old_node = (
+                TrieNode(key[len(old) :], old_entry) if old_entry else None
+            )
+            new_node = (
+                TrieNode(key[len(new) :], new_entry) if new_entry else None
+            )
+            yield Change(typ, old_node, new_node)

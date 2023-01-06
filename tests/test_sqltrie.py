@@ -3,11 +3,19 @@ import os
 
 import pytest
 
-from sqltrie import UNCHANGED, Change, ShortKeyError, SQLiteTrie, TrieNode
+from sqltrie import (
+    UNCHANGED,
+    Change,
+    PyGTrie,
+    ShortKeyError,
+    SQLiteTrie,
+    TrieNode,
+)
 
 
-def test_trie():
-    trie = SQLiteTrie()
+@pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
+def test_trie(cls):
+    trie = cls()
 
     trie[("foo",)] = b"foo-value"
     trie[("foo", "bar", "baz")] = b"baz-value"
@@ -55,12 +63,16 @@ def test_trie():
     assert set(trie.items(("foo", "bar"))) == {
         (("foo", "bar", "baz"), b"baz-value"),
     }
-    assert set(trie.items(("foo", "bar", "baz"))) == set()
+    assert set(trie.items(("foo", "bar", "baz"))) == {
+        (("foo", "bar", "baz"), b"baz-value"),
+    }
 
     assert set(trie.view(("foo",)).items()) == {
         (("bar", "baz"), b"baz-value"),
     }
-    assert set(trie.view(("foo", "bar", "baz")).items()) == set()
+    assert set(trie.view(("foo", "bar", "baz")).items()) == {
+        ((), b"baz-value"),
+    }
 
     assert list(trie.ls(())) == [("foo",)]
     assert list(trie.ls(("foo",))) == [("foo", "bar")]
@@ -68,11 +80,6 @@ def test_trie():
 
     assert not list(trie.diff(("foo",), ("foo",)))
     assert list(trie.diff(("foo",), ("foo",), with_unchanged=True)) == [
-        Change(
-            typ=UNCHANGED,
-            old=TrieNode(key=("bar",), value=None),
-            new=TrieNode(key=("bar",), value=None),
-        ),
         Change(
             typ=UNCHANGED,
             old=TrieNode(key=("bar", "baz"), value=b"baz-value"),

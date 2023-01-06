@@ -124,12 +124,10 @@ class SQLiteTrie(AbstractTrie):
 
     def _get_node(self, key):
         if not key:
-            return {
-                "id": self._root_id,
-                "pid": None,
-                "name": None,
-                "value": None,
-            }
+            return self._conn.execute(
+                "SELECT * FROM nodes WHERE id == ?",
+                (self._root_id,),
+            ).fetchone()
 
         rows = list(self._traverse(key))
         if len(rows) != len(key):
@@ -242,11 +240,14 @@ class SQLiteTrie(AbstractTrie):
         return trie
 
     def items(self, prefix=None, shallow=False):
-        if prefix:
-            pid = self._get_node(prefix)["id"]
-        else:
-            prefix = ()
-            pid = self._root_id
+        prefix = prefix or ()
+        node = self._get_node(prefix)
+        pid = node["id"]
+        has_value = node["has_value"]
+        value = node["value"]
+
+        if has_value:
+            yield prefix, value
 
         self._conn.executescript(ITEMS_SQL.format(root=pid, shallow=shallow))
         rows = self._conn.execute(f"SELECT * FROM {ITEMS_TABLE}")  # nosec
