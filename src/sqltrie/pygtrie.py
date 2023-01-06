@@ -89,9 +89,13 @@ class PyGTrie(AbstractTrie):
         return ret
 
     def ls(self, key, with_values=False):
-        def node_factory(_, nkey, children, *args):
+        def node_factory(_, nkey, children, value=None):
             if nkey == key:
                 return children
+
+            if with_values:
+                return nkey, value
+
             return nkey
 
         return self.traverse(node_factory, prefix=key)
