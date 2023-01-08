@@ -1,7 +1,29 @@
+import json
+import platform
 from abc import abstractmethod
 from typing import Any, Optional
 
-import orjson
+try:
+    import orjson
+
+    def json_loads(value):
+        return orjson.loads(value)  # pylint: disable=no-member
+
+    def json_dumps(value):
+        return orjson.dumps(value)  # pylint: disable=no-member
+
+except ImportError:
+    # NOTE: orjson doesn't support PyPy, see
+    # https://github.com/ijl/orjson/issues/90
+    if platform.python_implementation() == "CPython":
+        raise
+
+    def json_loads(value):
+        return json.load(value.decode("utf-8"))
+
+    def json_dumps(value):
+        return json.dumps(value).encode("utf-8")
+
 
 from .trie import AbstractTrie, Iterator, TrieKey
 
@@ -109,9 +131,9 @@ class JSONTrie(SerializedTrie):  # pylint: disable=abstract-method
     def _load(self, key: TrieKey, value: Optional[bytes]) -> Optional[Any]:
         if value is None:
             return None
-        return orjson.loads(value)  # pylint: disable=no-member
+        return json_loads(value)
 
     def _dump(self, key: TrieKey, value: Optional[Any]) -> Optional[bytes]:
         if value is None:
             return None
-        return orjson.dumps(value)  # pylint: disable=no-member
+        return json_dumps(value)
