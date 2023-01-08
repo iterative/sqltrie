@@ -1,6 +1,7 @@
-import json
 from abc import abstractmethod
 from typing import Any, Optional
+
+import orjson
 
 from .trie import AbstractTrie, Iterator, TrieKey
 
@@ -108,9 +109,9 @@ class JSONTrie(SerializedTrie):  # pylint: disable=abstract-method
     def _load(self, key: TrieKey, value: Optional[bytes]) -> Optional[Any]:
         if value is None:
             return None
-        return json.loads(value.decode("utf-8"))
+        return orjson.loads(value)  # pylint: disable=no-member
 
     def _dump(self, key: TrieKey, value: Optional[Any]) -> Optional[bytes]:
         if value is None:
             return None
-        return json.dumps(value).encode("utf-8")
+        return orjson.dumps(value)  # pylint: disable=no-member
