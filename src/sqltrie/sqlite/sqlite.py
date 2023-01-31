@@ -98,7 +98,7 @@ class SQLiteTrie(AbstractTrie):
         node_key = longest_prefix
         for name in key[len(longest_prefix) :]:
             node_key = (*node_key, name)
-            row = self._conn.execute(
+            cur = self._conn.execute(
                 """
                 INSERT OR IGNORE
                     INTO nodes (pid, name)
@@ -106,8 +106,8 @@ class SQLiteTrie(AbstractTrie):
                     RETURNING id
                 """,
                 (pid, name),
-            ).fetchone()
-            nid = row["id"]
+            )
+            nid = cur.lastrowid
             self._ids[node_key] = nid
             pid = nid
 
