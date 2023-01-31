@@ -4,14 +4,7 @@ from pathlib import Path
 from typing import Iterator, Optional, Union
 from uuid import uuid4
 
-from ..trie import (
-    AbstractTrie,
-    Change,
-    ShortKeyError,
-    TrieKey,
-    TrieNode,
-    TrieStep,
-)
+from ..trie import AbstractTrie, Change, ShortKeyError, TrieKey, TrieNode, TrieStep
 
 # NOTE: seems like "named" doesn't work without changing this global var,
 # so unfortunately we have to stick with qmark.
@@ -118,9 +111,7 @@ class SQLiteTrie(AbstractTrie):
             STEPS_SQL.format(path="/".join(key), root=self._root_id)
         )
 
-        return self._conn.execute(  # nosec
-            f"SELECT * FROM {STEPS_TABLE}"
-        ).fetchall()
+        return self._conn.execute(f"SELECT * FROM {STEPS_TABLE}").fetchall()  # nosec
 
     def _get_node(self, key):
         if not key:
@@ -195,9 +186,7 @@ class SQLiteTrie(AbstractTrie):
         )
 
     def __len__(self):
-        self._conn.executescript(
-            ITEMS_SQL.format(root=self._root_id, shallow=False)
-        )
+        self._conn.executescript(ITEMS_SQL.format(root=self._root_id, shallow=False))
         return self._conn.execute(  # nosec
             f"""
             SELECT COUNT(*) AS count FROM {ITEMS_TABLE}
@@ -252,9 +241,7 @@ class SQLiteTrie(AbstractTrie):
         self._conn.executescript(ITEMS_SQL.format(root=pid, shallow=shallow))
         rows = self._conn.execute(f"SELECT * FROM {ITEMS_TABLE}")  # nosec
 
-        yield from (
-            ((*prefix, *row["path"].split("/")), row["value"]) for row in rows
-        )
+        yield from (((*prefix, *row["path"].split("/")), row["value"]) for row in rows)
 
     def clear(self):
         self._conn.execute("DELETE FROM nodes")
@@ -271,8 +258,7 @@ class SQLiteTrie(AbstractTrie):
     ) -> Iterator[Union[TrieKey, TrieNode]]:
         if with_values:
             yield from (  # type: ignore
-                ((*key, row["name"]), row["value"])
-                for row in self._get_children(key)
+                ((*key, row["name"]), row["value"]) for row in self._get_children(key)
             )
         else:
             yield from (  # type: ignore
@@ -284,12 +270,8 @@ class SQLiteTrie(AbstractTrie):
         row = self._get_node(prefix)
         value = row["value"]
 
-        children_keys = (
-            (*key, row["name"]) for row in self._get_children(key)
-        )
-        children = (
-            self.traverse(node_factory, child) for child in children_keys
-        )
+        children_keys = ((*key, row["name"]) for row in self._get_children(key))
+        children = (self.traverse(node_factory, child) for child in children_keys)
 
         return node_factory(None, key, children, value)
 

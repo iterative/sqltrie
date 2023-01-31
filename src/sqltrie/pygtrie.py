@@ -119,10 +119,6 @@ class PyGTrie(AbstractTrie):
             elif not with_unchanged:
                 continue
 
-            old_node = (
-                TrieNode(key[len(old) :], old_entry) if old_entry else None
-            )
-            new_node = (
-                TrieNode(key[len(new) :], new_entry) if new_entry else None
-            )
+            old_node = TrieNode(key[len(old) :], old_entry) if old_entry else None
+            new_node = TrieNode(key[len(new) :], new_entry) if new_entry else None
             yield Change(typ, old_node, new_node)
