@@ -3,14 +3,7 @@ import os
 
 import pytest
 
-from sqltrie import (
-    UNCHANGED,
-    Change,
-    PyGTrie,
-    ShortKeyError,
-    SQLiteTrie,
-    TrieNode,
-)
+from sqltrie import UNCHANGED, Change, PyGTrie, ShortKeyError, SQLiteTrie, TrieNode
 
 
 @pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
