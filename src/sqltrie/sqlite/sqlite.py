@@ -96,7 +96,6 @@ class SQLiteTrie(AbstractTrie):
                 INSERT OR IGNORE
                     INTO nodes (pid, name)
                     VALUES (?, ?)
-                    RETURNING id
                 """,
                 (pid, name),
             )
