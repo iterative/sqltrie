@@ -117,3 +117,17 @@ def test_open(tmp_path):
 
     assert trie[("foo",)] == b"foo-value"
     assert trie[("foo", "bar", "baz")] == b"baz-value"
+
+
+@pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
+def test_view(cls):
+    trie = cls()
+
+    view = trie.view(("a",))
+    assert not list(view.items())
+
+    view = trie.view(("a", "b"))
+    assert not list(view.items())
+
+    view = trie.view(("a", "b", "c"))
+    assert not list(view.items())

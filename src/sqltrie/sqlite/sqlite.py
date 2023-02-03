@@ -219,12 +219,16 @@ class SQLiteTrie(AbstractTrie):
             return self
 
         self.commit()
-        node = self._get_node(key)
+        try:
+            nid = self._get_node(key)["id"]
+        except KeyError:
+            nid = self._create_node(key)
+            self.commit()
 
         trie = SQLiteTrie()
         trie._path = self._path  # pylint: disable=protected-access
         trie._root_key = key  # pylint: disable=protected-access
-        trie._root_id = node["id"]  # pylint: disable=protected-access
+        trie._root_id = nid  # pylint: disable=protected-access
         return trie
 
     def items(self, prefix=None, shallow=False):

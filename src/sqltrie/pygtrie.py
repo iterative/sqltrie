@@ -83,8 +83,11 @@ class PyGTrie(AbstractTrie):
         if key is not None:
             kwargs["prefix"] = key
 
-        for ikey, value in self._trie.iteritems(**kwargs):
-            ret[ikey[len(key) :]] = value
+        try:
+            for ikey, value in self._trie.iteritems(**kwargs):
+                ret[ikey[len(key) :]] = value
+        except KeyError:
+            pass
 
         return ret
 
