@@ -49,7 +49,7 @@ class PyGTrie(AbstractTrie):
         return len(self._trie)
 
     def has_node(self, key):
-        return self._trie.has_node(key)
+        return bool(self._trie.has_node(key))
 
     def items(self, prefix=None, shallow=False):
         kwargs = {"shallow": shallow}

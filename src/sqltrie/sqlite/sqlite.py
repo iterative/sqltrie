@@ -251,8 +251,8 @@ class SQLiteTrie(AbstractTrie):
 
     def has_node(self, key: TrieKey) -> bool:
         try:
-            value = self[key]
-            return value is not None
+            self._get_node(key)
+            return True
         except KeyError:
             return False
 

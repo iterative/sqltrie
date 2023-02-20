@@ -99,6 +99,20 @@ def test_set_get(cls):
     assert trie[("foo", "bar")] == b"1"
 
 
+@pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
+def test_has_node(cls):
+    trie = cls()
+
+    trie[("foo", "bar")] = b"1"
+    assert trie.has_node(())
+    assert trie.has_node(("foo",))
+    assert trie.has_node(("foo", "bar"))
+    assert not trie.has_node(("qux",))
+    assert not trie.has_node(("foo", "qux"))
+    assert not trie.has_node(("foo", "bar", "qux"))
+    assert not trie.has_node(("foo", "bar", "qux", "xyz"))
+
+
 def test_open(tmp_path):
     path = os.fspath(tmp_path / "db")
     trie = SQLiteTrie.open(path)
