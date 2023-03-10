@@ -235,6 +235,7 @@ class SQLiteTrie(AbstractTrie):
 
         trie = SQLiteTrie()
         trie._path = self._path  # pylint: disable=protected-access
+        trie._local = self._local  # pylint: disable=protected-access
         trie._root_key = key  # pylint: disable=protected-access
         trie._root_id = nid  # pylint: disable=protected-access
         return trie
