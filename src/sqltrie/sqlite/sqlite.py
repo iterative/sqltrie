@@ -6,6 +6,9 @@ from uuid import uuid4
 
 from ..trie import AbstractTrie, Change, ShortKeyError, TrieKey, TrieNode, TrieStep
 
+# https://www.sqlite.org/lang_UPSERT.html
+MIN_SQLITE_VER = (3, 24, 0)
+
 # NOTE: seems like "named" doesn't work without changing this global var,
 # so unfortunately we have to stick with qmark.
 assert sqlite3.paramstyle == "qmark"
@@ -65,6 +68,11 @@ class SQLiteTrie(AbstractTrie):
 
     @property
     def _conn(self):  # pylint: disable=method-hidden
+        if sqlite3.sqlite_version_info < MIN_SQLITE_VER:
+            raise RuntimeError(
+                f"SQLite version is too old, please upgrade to >= {MIN_SQLITE_VER}"
+            )
+
         conn = getattr(self._local, "conn", None)
         if conn is None:
             conn = self._local.conn = sqlite3.connect(self._path)
