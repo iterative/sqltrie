@@ -6,8 +6,11 @@ from uuid import uuid4
 
 from ..trie import AbstractTrie, Change, ShortKeyError, TrieKey, TrieNode, TrieStep
 
+# https://www.sqlite.org/lang_with.html
+MIN_SQLITE_VER = (3, 8, 3)
+
 # https://www.sqlite.org/lang_UPSERT.html
-MIN_SQLITE_VER = (3, 24, 0)
+HAS_UPSERT = sqlite3.sqlite_version_info >= (3, 24, 0)
 
 # NOTE: seems like "named" doesn't work without changing this global var,
 # so unfortunately we have to stick with qmark.
@@ -159,19 +162,42 @@ class SQLiteTrie(AbstractTrie):
 
     def __setitem__(self, key, value):
         pid = self._create_node(key[:-1])
-        self._conn.execute(
-            """
-            INSERT INTO
-                nodes (pid, name, has_value, value)
-                VALUES (?1, ?2, True, ?3)
-                ON CONFLICT (pid, name) DO UPDATE SET has_value=True, value=?3
-            """,
-            (
-                pid,
-                key[-1],
-                value,
-            ),
-        )
+
+        if HAS_UPSERT:
+            self._conn.execute(
+                """
+                INSERT INTO
+                    nodes (pid, name, has_value, value)
+                    VALUES (?1, ?2, True, ?3)
+                    ON CONFLICT (pid, name) DO UPDATE SET has_value=True, value=?3
+                """,
+                (
+                    pid,
+                    key[-1],
+                    value,
+                ),
+            )
+        else:
+            self._conn.execute(
+                """
+                INSERT OR REPLACE INTO
+                    nodes (id, pid, name, has_value, value)
+                    SELECT
+                        COALESCE(
+                            (SELECT id FROM nodes WHERE pid == ?1 AND name == ?2),
+                            (SELECT MAX(id) + 1 FROM nodes)
+                        ),
+                        ?1,
+                        ?2,
+                        1,
+                        ?3
+                """,
+                (
+                    pid,
+                    key[-1],
+                    value,
+                ),
+            )
 
     def __iter__(self):
         yield from (key for key, _ in self.items())
