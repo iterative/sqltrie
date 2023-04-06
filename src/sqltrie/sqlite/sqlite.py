@@ -213,7 +213,7 @@ class SQLiteTrie(AbstractTrie):
         node = self._get_node(key)
         self._conn.execute(
             """
-            UPDATE nodes SET has_value = False, value = NULL WHERE id == ?
+            UPDATE nodes SET has_value = 0, value = NULL WHERE id == ?
             """,
             (node["id"],),
         )
