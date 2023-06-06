@@ -98,6 +98,9 @@ def test_set_get(cls):
     assert trie[("foo",)] == b"2"
     assert trie[("foo", "bar")] == b"1"
 
+    trie[("foo'bar",)] = b"2"
+    assert trie[("foo'bar",)] == b"2"
+
 
 @pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
 def test_has_node(cls):

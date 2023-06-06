@@ -117,9 +117,8 @@ class SQLiteTrie(AbstractTrie):
         return pid
 
     def _traverse(self, key):
-        self._conn.executescript(
-            STEPS_SQL.format(path="/".join(key), root=self._root_id)
-        )
+        path = "/".join(key).replace("'", "''")
+        self._conn.executescript(STEPS_SQL.format(path=path, root=self._root_id))
 
         return self._conn.execute(f"SELECT * FROM {STEPS_TABLE}").fetchall()  # nosec
 
