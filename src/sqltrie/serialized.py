@@ -99,6 +99,9 @@ class SerializedTrie(AbstractTrie):
     def has_node(self, key):
         return self._trie.has_node(key)
 
+    def delete_node(self, key):
+        return self._trie.delete_node(key)
+
     def shortest_prefix(self, key):
         sprefix = self._trie.shortest_prefix(key)
         if sprefix is None:

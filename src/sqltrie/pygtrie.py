@@ -51,6 +51,9 @@ class PyGTrie(AbstractTrie):
     def has_node(self, key):
         return bool(self._trie.has_node(key))
 
+    def delete_node(self, key):
+        raise NotImplementedError
+
     def items(self, prefix=None, shallow=False):
         kwargs = {"shallow": shallow}
         if prefix is not None:

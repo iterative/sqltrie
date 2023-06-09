@@ -149,16 +149,6 @@ class SQLiteTrie(AbstractTrie):
             (node["id"],),
         ).fetchall()
 
-    def _delete_node(self, key):
-        node = self._get_node(key)
-        del self._ids[key]
-        self._conn.execute(
-            """
-            DELETE FROM nodes WHERE id = ?
-            """,
-            (node["id"],),
-        )
-
     def __setitem__(self, key, value):
         pid = self._create_node(key[:-1])
 
@@ -289,6 +279,16 @@ class SQLiteTrie(AbstractTrie):
             return True
         except KeyError:
             return False
+
+    def delete_node(self, key: TrieKey):
+        node = self._get_node(key)
+        del self._ids[key]
+        self._conn.execute(
+            """
+            DELETE FROM nodes WHERE id = ?
+            """,
+            (node["id"],),
+        )
 
     def ls(
         self, key: TrieKey, with_values: Optional[bool] = False

@@ -86,6 +86,11 @@ class AbstractTrie(MutableMapping):
         pass
 
     @abstractmethod
+    def delete_node(self, key: TrieKey) -> bool:
+        # NOTE: this will leave orphans down the tree
+        pass
+
+    @abstractmethod
     def prefixes(self, key: TrieKey) -> Iterator[TrieStep]:
         pass
 
