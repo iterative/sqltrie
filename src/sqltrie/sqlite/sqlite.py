@@ -150,6 +150,15 @@ class SQLiteTrie(AbstractTrie):
         ).fetchall()
 
     def __setitem__(self, key, value):
+        if not key:
+            self._conn.execute(
+                """
+                UPDATE nodes SET has_value = True, value = ?  WHERE id == ?
+                """,
+                (value, self._root_id),
+            )
+            return
+
         pid = self._create_node(key[:-1])
 
         if HAS_UPSERT:

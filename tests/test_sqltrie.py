@@ -103,6 +103,17 @@ def test_set_get(cls):
 
 
 @pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
+def test_set_get_root(cls):
+    trie = cls()
+
+    trie[()] = b"root"
+    assert trie[()] == b"root"
+    del trie[()]
+    with pytest.raises(KeyError):
+        trie[()]
+
+
+@pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
 def test_has_node(cls):
     trie = cls()
 
