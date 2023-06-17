@@ -217,7 +217,9 @@ class SQLiteTrie(AbstractTrie):
         )
 
     def __len__(self):
-        self._conn.executescript(ITEMS_SQL.format(root=self._root_id, shallow=False))
+        self._conn.executescript(
+            ITEMS_SQL.format(root=self._root_id, shallow=int(False))
+        )
         return self._conn.execute(  # nosec
             f"""
             SELECT COUNT(*) AS count FROM {ITEMS_TABLE}
@@ -274,7 +276,7 @@ class SQLiteTrie(AbstractTrie):
         if has_value:
             yield prefix, value
 
-        self._conn.executescript(ITEMS_SQL.format(root=pid, shallow=shallow))
+        self._conn.executescript(ITEMS_SQL.format(root=pid, shallow=int(shallow)))
         rows = self._conn.execute(f"SELECT * FROM {ITEMS_TABLE}")  # nosec
 
         yield from (((*prefix, *row["path"].split("/")), row["value"]) for row in rows)
@@ -329,7 +331,7 @@ class SQLiteTrie(AbstractTrie):
             DIFF_SQL.format(
                 old_root=old_id,
                 new_root=new_id,
-                with_unchanged=with_unchanged,
+                with_unchanged=int(with_unchanged),
             )
         )
 
