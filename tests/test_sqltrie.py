@@ -110,7 +110,7 @@ def test_set_get_root(cls):
     assert trie[()] == b"root"
     del trie[()]
     with pytest.raises(KeyError):
-        trie[()]
+        trie[()]  # pylint: disable=pointless-statement
 
 
 @pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
