@@ -293,7 +293,7 @@ class SQLiteTrie(AbstractTrie):
 
     def delete_node(self, key: TrieKey):
         node = self._get_node(key)
-        del self._ids[key]
+        self._ids.pop(key, None)
         self._conn.execute(
             """
             DELETE FROM nodes WHERE id = ?
