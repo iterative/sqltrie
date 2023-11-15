@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Iterator, Optional, Union
 from uuid import uuid4
 
+from ..pygtrie import PyGTrie
 from ..trie import AbstractTrie, Change, ShortKeyError, TrieKey, TrieNode, TrieStep
 
 # https://www.sqlite.org/lang_with.html
@@ -314,14 +315,10 @@ class SQLiteTrie(AbstractTrie):
             )
 
     def traverse(self, node_factory, prefix=None):
-        key = prefix or ()
-        row = self._get_node(prefix)
-        value = row["value"]
-
-        children_keys = ((*key, row["name"]) for row in self._get_children(key))
-        children = (self.traverse(node_factory, child) for child in children_keys)
-
-        return node_factory(None, key, children, value)
+        trie = PyGTrie()
+        for key, value in self.items():
+            trie[key] = value
+        return trie.traverse(node_factory, prefix=prefix)
 
     def diff(self, old, new, with_unchanged=False):
         old_id = self._get_node(old)["id"]
