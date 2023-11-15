@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Iterator, Optional, Union
 from uuid import uuid4
 
+from ..pygtrie import PyGTrie
 from ..trie import AbstractTrie, Change, ShortKeyError, TrieKey, TrieNode, TrieStep
 
 # https://www.sqlite.org/lang_with.html
@@ -245,25 +246,20 @@ class SQLiteTrie(AbstractTrie):
             ret = step
         return ret
 
-    def view(  # type: ignore
+    def view(
         self,
         key: Optional[TrieKey] = None,
-    ) -> "SQLiteTrie":
+    ) -> "AbstractTrie":
         if not key:
             return self
 
         self.commit()
+        trie = PyGTrie()
         try:
-            nid = self._get_node(key)["id"]
+            for ikey, value in self.items(prefix=key):
+                trie[ikey[len(key) :]] = value
         except KeyError:
-            nid = self._create_node(key)
-            self.commit()
-
-        trie = SQLiteTrie()
-        trie._path = self._path  # pylint: disable=protected-access
-        trie._local = self._local  # pylint: disable=protected-access
-        trie._root_key = key  # pylint: disable=protected-access
-        trie._root_id = nid  # pylint: disable=protected-access
+            pass
         return trie
 
     def items(self, prefix=None, shallow=False):
