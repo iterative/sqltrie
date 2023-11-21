@@ -88,8 +88,10 @@ class SerializedTrie(AbstractTrie):
             yield from entries
 
     def traverse(self, node_factory, prefix=None):
-        def _node_factory_wrapper(path_conv, path, children, value):
-            return node_factory(path_conv, path, children, self._load(path, value))
+        def _node_factory_wrapper(path_conv, path, children, *value):
+            return node_factory(
+                path_conv, path, children, self._load(path, value[0] if value else None)
+            )
 
         return self._trie.traverse(_node_factory_wrapper, prefix=prefix)
 
