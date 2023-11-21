@@ -22,6 +22,21 @@ def tests(session: nox.Session) -> None:
 
 
 @nox.session
+def bench(session: nox.Session) -> None:
+    session.install(".[tests]")
+    storage = os.getenv("PYTEST_BENCHMARK_STORAGE", "file://.benchmarks")
+    session.run(
+        "pytest",
+        "--benchmark-storage",
+        storage,
+        "--benchmark-only",
+        "--benchmark-group-by",
+        "func",
+        *session.posargs,
+    )
+
+
+@nox.session
 def lint(session: nox.Session) -> None:
     session.install("pre-commit")
     session.install("-e", ".[dev]")
