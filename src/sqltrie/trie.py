@@ -1,6 +1,16 @@
 from abc import abstractmethod
 from collections.abc import MutableMapping
-from typing import Iterator, NamedTuple, Optional, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Iterator,
+    NamedTuple,
+    Optional,
+    Protocol,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from attrs import define
 
@@ -10,13 +20,28 @@ class ShortKeyError(KeyError):
     but does not have a value associated with itself."""
 
 
-TrieKey = Union[Tuple[()], Tuple[str]]
+TrieKey = Union[Tuple[()], Tuple[str, ...]]
 TrieStep = Tuple[Optional[TrieKey], Optional[bytes]]
 
 
 class TrieNode(NamedTuple):
     key: TrieKey
     value: Optional[bytes]
+
+
+PathConv = Optional[Callable[[Any], TrieKey]]
+_T = TypeVar("_T")
+
+
+class NodeFactory(Protocol):
+    def __call__(
+        self,
+        path_conv: PathConv,
+        path: Any,
+        children: Iterator[_T],
+        value: Any = (),
+    ) -> _T:
+        ...
 
 
 ADD = "add"
@@ -111,8 +136,8 @@ class AbstractTrie(MutableMapping):
 
     @abstractmethod
     def traverse(
-        self, node_factory, prefix: Optional[TrieKey]
-    ) -> Iterator[Tuple[TrieKey, bytes]]:
+        self, node_factory: NodeFactory, prefix: Optional[TrieKey] = None
+    ) -> _T:
         pass
 
     @abstractmethod

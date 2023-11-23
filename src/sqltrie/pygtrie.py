@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pygtrie
 
 from .trie import (
@@ -7,7 +9,9 @@ from .trie import (
     UNCHANGED,
     AbstractTrie,
     Change,
+    NodeFactory,
     ShortKeyError,
+    TrieKey,
     TrieNode,
 )
 
@@ -73,7 +77,7 @@ class PyGTrie(AbstractTrie):
             return None
         return tuple(ret)
 
-    def traverse(self, node_factory, prefix=None):
+    def traverse(self, node_factory: NodeFactory, prefix: Optional[TrieKey] = None):
         kwargs = {}
         if prefix is not None:
             kwargs["prefix"] = prefix

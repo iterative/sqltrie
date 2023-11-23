@@ -1,10 +1,20 @@
 import sqlite3
 import threading
 from pathlib import Path
-from typing import Iterator, Optional, Union
+from typing import Any, Iterator, List, Optional, Tuple, Union
 from uuid import uuid4
 
-from ..trie import AbstractTrie, Change, ShortKeyError, TrieKey, TrieNode, TrieStep
+from attrs import define
+
+from ..trie import (
+    AbstractTrie,
+    Change,
+    NodeFactory,
+    ShortKeyError,
+    TrieKey,
+    TrieNode,
+    TrieStep,
+)
 
 # https://www.sqlite.org/lang_with.html
 MIN_SQLITE_VER = (3, 8, 3)
@@ -34,6 +44,53 @@ DIFF_SQL = (scripts / "diff.sql").read_text()
 DIFF_TABLE = "temp_diff"
 
 DEFAULT_DB_FMT = "file:sqlitetrie_{id}?mode=memory&cache=shared"
+
+
+@define(frozen=True)
+class _SQLiteTrieNode:
+    id: int
+    pid: int
+    name: str
+    has_value: bool
+    value: Optional[bytes]
+
+    @classmethod
+    def from_step(cls, step: sqlite3.Row):
+        kwargs = dict(step)
+        kwargs.pop("path", None)
+        return cls(**kwargs)
+
+    def get_children(
+        self,
+        conn: sqlite3.Connection,
+        limit: Optional[int] = None,
+    ) -> Iterator["_SQLiteTrieNode"]:
+        limit_sql = ""
+        if limit:
+            limit_sql = f"LIMIT {limit}"
+
+        for row in conn.execute(  # nosec
+            f"""
+            SELECT * FROM nodes WHERE nodes.pid == ? {limit_sql}
+            """,
+            (self.id,),
+        ).fetchall():
+            yield _SQLiteTrieNode(**row)
+
+    def traverse(
+        self,
+        conn: sqlite3.Connection,
+        node_factory: NodeFactory,
+        key: TrieKey,
+    ):
+        def children() -> Iterator[Tuple[TrieKey, bytes]]:
+            for node in self.get_children(conn):
+                yield node.traverse(conn, node_factory, key + (node.name,))
+
+        args: List[Any] = [None, key, children()]
+        if self.has_value:
+            args.append(self.value)
+        return node_factory(*args)
 
 
 class SQLiteTrie(AbstractTrie):
@@ -313,15 +370,10 @@ class SQLiteTrie(AbstractTrie):
                 (*key, row["name"]) for row in self._get_children(key)
             )
 
-    def traverse(self, node_factory, prefix=None):
+    def traverse(self, node_factory: NodeFactory, prefix: Optional[TrieKey] = None):
         key = prefix or ()
-        row = self._get_node(prefix)
-        value = row["value"]
-
-        children_keys = ((*key, row["name"]) for row in self._get_children(key))
-        children = (self.traverse(node_factory, child) for child in children_keys)
-
-        return node_factory(None, key, children, value)
+        node = _SQLiteTrieNode.from_step(self._get_node(key))
+        return node.traverse(self._conn, node_factory, key)
 
     def diff(self, old, new, with_unchanged=False):
         old_id = self._get_node(old)["id"]
