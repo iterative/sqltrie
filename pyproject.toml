@@ -4,28 +4,55 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 
-[tool.black]
-line-length = 88
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
+[project]
+name = "sqltrie"
+description = "SQL-based prefix tree inspired by pygtrie and python-diskcache"
+readme = "README.rst"
+license = {text = "Apache-2.0"}
+authors = [{ name = "Ruslan Kuprieiev", email = "ruslan@iterative.ai" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Development Status :: 1 - Planning",
+]
+requires-python = ">=3.8"
+dynamic = ["version"]
+dependencies = [
+    "attrs",
+    # NOTE: orjson doesn't support pypy, see
+    # https://github.com/ijl/orjson/issues/90
+    "orjson; implementation_name=='cpython'",
+    "pygtrie",
+]
 
-[tool.isort]
-profile = "black"
-known_first_party = ["sqltrie"]
-line_length = 88
+[project.urls]
+Issues = "https://github.com/efiop/sqltrie/issues"
+Source = "https://github.com/efiop/sqltrie"
+
+[project.optional-dependencies]
+tests = [
+    "pytest==7.2.0",
+    "pytest-sugar==0.9.5",
+    "pytest-cov==3.0.0",
+    "pytest-mock==3.8.2",
+    "mypy==0.971",
+    "pytest-benchmark",
+    "pyinstaller",
+]
+dev = [
+    "sqltrie[tests]",
+]
+
+[project.entry-points.pyinstaller40]
+hook-dirs = "sqltrie.__pyinstaller:get_hook_dirs"
+tests = "sqltrie.__pyinstaller:get_PyInstaller_tests"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false
 
 [tool.pytest.ini_options]
 addopts = "-ra"
@@ -64,30 +91,8 @@ warn_redundant_casts = true
 warn_unreachable = true
 files = ["src", "tests"]
 
-[tool.pylint.format]
-max-line-length = 88
-
-[tool.pylint.master]
-load-plugins = ["pylint_pytest"]
-
-[tool.pylint.message_control]
-enable = ["c-extension-no-member", "no-else-return"]
-disable = [
-    "fixme",
-    "missing-function-docstring", "missing-module-docstring",
-    "missing-class-docstring",
-]
-
-[tool.pylint.variables]
-dummy-variables-rgx = "_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_"
-ignored-argument-names = "_.*|^ignored_|^unused_|args|kwargs"
-
 [tool.codespell]
 ignore-words-list = "datas"
-
-[tool.bandit]
-exclude_dirs = ["tests"]
-skips = ["B101"]
 
 [tool.sqlfluff.core]
 dialect = "sqlite"
