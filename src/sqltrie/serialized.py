@@ -25,7 +25,7 @@ except ImportError:
         return json.dumps(value).encode("utf-8")
 
 
-from .trie import AbstractTrie, Iterator, TrieKey
+from .trie import AbstractTrie, Iterator, NodeFactory, TrieKey
 
 
 class SerializedTrie(AbstractTrie):
@@ -87,8 +87,9 @@ class SerializedTrie(AbstractTrie):
         else:
             yield from entries
 
-    def traverse(self, node_factory, prefix=None):
-        def _node_factory_wrapper(path_conv, path, children, value):
+    def traverse(self, node_factory: NodeFactory, prefix: Optional[TrieKey] = None):
+        def _node_factory_wrapper(path_conv, path, children, *value):
+            value = value[0] if value else None
             return node_factory(path_conv, path, children, self._load(path, value))
 
         return self._trie.traverse(_node_factory_wrapper, prefix=prefix)
