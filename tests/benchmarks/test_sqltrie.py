@@ -69,9 +69,9 @@ def test_traverse(benchmark, make_trie, cls):
 
     def traverse():
         def node_factory(path_conv, key, children, *args):
-            return children
+            list(children)
 
-        list(trie.traverse(node_factory))
+        trie.traverse(node_factory)
 
     benchmark(traverse)
 
