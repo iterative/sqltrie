@@ -2,40 +2,60 @@ import pytest
 
 from sqltrie import PyGTrie, SQLiteTrie
 
-NFILES = 10000
-NSUBDIRS = 3
-
 
 @pytest.fixture(scope="session")
-def items():
+def tree():
     ret = {}
 
-    files = {str(idx): bytes(idx) for idx in range(NFILES)}
-    for subdir in range(NSUBDIRS):
-        ret[str(subdir)] = files.copy()
+    # NOTE: emulating mnist dataset from dvc-bench
+    # TODO: ability to test multiple mockup datasets, maybe even with a CLI flag
+
+    ret["train"] = None
+    for subdir_idx in range(10):
+        subdir_key = ("train", str(subdir_idx))
+        ret[subdir_key] = None
+        for file_idx in range(1100):
+            file_key = (*subdir_key, str(file_idx))
+            ret[file_key] = bytes(file_idx)
+
+    ret["test"] = None
+    for subdir_idx in range(10):
+        subdir_key = ("test", str(subdir_idx))
+        ret[subdir_key] = None
+        for file_idx in range(6000):
+            file_key = (*subdir_key, str(file_idx))
+            ret[file_key] = bytes(file_idx)
 
     return ret
 
 
-@pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
-def test_set(benchmark, items, cls):
-    def _set():
+@pytest.fixture
+def make_trie(tree):
+    def _make_trie(cls):
         trie = cls()
 
-        for subdir in range(NSUBDIRS):
-            for idx in range(NFILES):
-                trie[(str(subdir), str(idx))] = bytes(idx)
+        for key, value in tree.items():
+            trie[key] = value
+
+        return trie
+
+    return _make_trie
+
+
+@pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
+def test_set(benchmark, tree, cls):
+    trie = cls()
+
+    def _set():
+        for key, value in tree.items():
+            trie[key] = value
 
     benchmark(_set)
 
 
 @pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
-def test_items(benchmark, items, cls):
-    trie = cls()
-
-    for subdir in range(NSUBDIRS):
-        for idx in range(NFILES):
-            trie[(str(subdir), str(idx))] = bytes(idx)
+def test_items(benchmark, make_trie, cls):
+    trie = make_trie(cls)
 
     def _items():
         list(trie.items())
@@ -44,26 +64,18 @@ def test_items(benchmark, items, cls):
 
 
 @pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
-def test_ls(benchmark, items, cls):
-    trie = cls()
-
-    for subdir in range(NSUBDIRS):
-        for idx in range(NFILES):
-            trie[(str(subdir), str(idx))] = bytes(idx)
+def test_ls(benchmark, make_trie, cls):
+    trie = make_trie(cls)
 
     def _ls():
-        list(trie.ls(("1",)))
+        list(trie.ls(()))
 
     benchmark(_ls)
 
 
 @pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
-def test_diff(benchmark, items, cls):
-    trie = cls()
-
-    for subdir in range(NSUBDIRS):
-        for idx in range(NFILES):
-            trie[(str(subdir), str(idx))] = bytes(idx)
+def test_diff(benchmark, make_trie, cls):
+    trie = make_trie(cls)
 
     def _diff():
         list(trie.diff(None, None))
