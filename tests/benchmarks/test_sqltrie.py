@@ -64,6 +64,19 @@ def test_items(benchmark, make_trie, cls):
 
 
 @pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
+def test_traverse(benchmark, make_trie, cls):
+    trie = make_trie(cls)
+
+    def traverse():
+        def node_factory(path_conv, key, children, *args):
+            return children
+
+        list(trie.traverse(node_factory))
+
+    benchmark(traverse)
+
+
+@pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
 def test_ls(benchmark, make_trie, cls):
     trie = make_trie(cls)
 
