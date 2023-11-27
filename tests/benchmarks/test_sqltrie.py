@@ -64,6 +64,16 @@ def test_items(benchmark, make_trie, cls):
 
 
 @pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
+def test_len(benchmark, make_trie, cls):
+    trie = make_trie(cls)
+
+    def _len():
+        len(trie)
+
+    benchmark(_len)
+
+
+@pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
 def test_traverse(benchmark, make_trie, cls):
     trie = make_trie(cls)
 
