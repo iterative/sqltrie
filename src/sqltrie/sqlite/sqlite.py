@@ -37,9 +37,6 @@ INIT_SQL = (scripts / "init.sql").read_text()
 STEPS_SQL = (scripts / "steps.sql").read_text()
 STEPS_TABLE = "temp_steps"
 
-ITEMS_SQL = (scripts / "items.sql").read_text()
-ITEMS_TABLE = "temp_items"
-
 DIFF_SQL = (scripts / "diff.sql").read_text()
 DIFF_TABLE = "temp_diff"
 
@@ -91,6 +88,20 @@ class _SQLiteTrieNode:
         if self.has_value:
             args.append(self.value)
         return node_factory(*args)
+
+    def iterate(
+        self, conn: sqlite3.Connection, key: TrieKey, shallow: bool = False
+    ) -> Iterator[Tuple[TrieKey, bytes]]:
+        stack = [(key, self)]
+        while stack:
+            node_key, node = stack.pop()
+            if node.has_value:
+                yield node_key, node.value  # type: ignore
+            if not (shallow and node.has_value):
+                stack.extend(
+                    (node_key + (child.name,), child)
+                    for child in node.get_children(conn)
+                )
 
 
 class SQLiteTrie(AbstractTrie):
@@ -274,14 +285,7 @@ class SQLiteTrie(AbstractTrie):
         )
 
     def __len__(self):
-        self._conn.executescript(
-            ITEMS_SQL.format(root=self._root_id, shallow=int(False))
-        )
-        return self._conn.execute(  # nosec
-            f"""
-            SELECT COUNT(*) AS count FROM {ITEMS_TABLE}
-            """
-        ).fetchone()["count"]
+        return len(list(self.items()))
 
     def prefixes(self, key: TrieKey) -> Iterator[TrieStep]:
         for row in self._traverse(key):
@@ -324,19 +328,9 @@ class SQLiteTrie(AbstractTrie):
         return trie
 
     def items(self, prefix=None, shallow=False):
-        prefix = prefix or ()
-        node = self._get_node(prefix)
-        pid = node["id"]
-        has_value = node["has_value"]
-        value = node["value"]
-
-        if has_value:
-            yield prefix, value
-
-        self._conn.executescript(ITEMS_SQL.format(root=pid, shallow=int(shallow)))
-        rows = self._conn.execute(f"SELECT * FROM {ITEMS_TABLE}")  # nosec
-
-        yield from (((*prefix, *row["path"].split("/")), row["value"]) for row in rows)
+        key = prefix or ()
+        node = _SQLiteTrieNode.from_step(self._get_node(key))
+        yield from node.iterate(self._conn, key, shallow=shallow)
 
     def clear(self):
         self._conn.execute("DELETE FROM nodes")
