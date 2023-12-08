@@ -234,14 +234,10 @@ class SQLiteTrie(AbstractTrie):
                 """
                 INSERT INTO
                     nodes (pid, name, has_value, value)
-                    VALUES (?1, ?2, True, ?3)
-                    ON CONFLICT (pid, name) DO UPDATE SET has_value=True, value=?3
+                    VALUES (:pid, :name, True, :value)
+                    ON CONFLICT (pid, name) DO UPDATE SET has_value=True, value=:value
                 """,
-                (
-                    pid,
-                    key[-1],
-                    value,
-                ),
+                {"pid": pid, "name": key[-1], "value": value},
             )
         else:
             self._conn.execute(
@@ -250,19 +246,15 @@ class SQLiteTrie(AbstractTrie):
                     nodes (id, pid, name, has_value, value)
                     SELECT
                         COALESCE(
-                            (SELECT id FROM nodes WHERE pid == ?1 AND name == ?2),
+                            (SELECT id FROM nodes WHERE pid == :pid AND name == :name),
                             (SELECT MAX(id) + 1 FROM nodes)
                         ),
-                        ?1,
-                        ?2,
+                        :pid,
+                        :name,
                         1,
-                        ?3
+                        :value
                 """,
-                (
-                    pid,
-                    key[-1],
-                    value,
-                ),
+                {"pid": pid, "name": key[-1], "value": value},
             )
 
     def __iter__(self):
