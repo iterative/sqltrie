@@ -120,6 +120,8 @@ class SQLiteTrie(AbstractTrie):
         return trie
 
     def close(self):
+        self._ids = {}
+
         conn = getattr(self._local, "conn", None)
         if conn is None:
             return

@@ -137,7 +137,12 @@ def test_open(tmp_path):
     trie[("foo", "bar", "baz")] = b"baz-value"
 
     trie.commit()
+
+    assert trie._ids == {(): 1, ("foo",): 2, ("foo", "bar"): 3}
+    assert trie._local.conn
     trie.close()
+    assert not trie._ids
+    assert not hasattr(trie._local, "conn")
 
     trie = SQLiteTrie.open(path)
 
@@ -145,6 +150,12 @@ def test_open(tmp_path):
 
     assert trie[("foo",)] == b"foo-value"
     assert trie[("foo", "bar", "baz")] == b"baz-value"
+
+    assert not trie._ids
+    assert trie._local.conn
+    trie.close()
+    assert not trie._ids
+    assert not hasattr(trie._local, "conn")
 
 
 @pytest.mark.parametrize("cls", [SQLiteTrie, PyGTrie])
