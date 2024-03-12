@@ -1,4 +1,5 @@
 """Tests for `sqltrie` package."""
+
 import os
 
 import pytest
