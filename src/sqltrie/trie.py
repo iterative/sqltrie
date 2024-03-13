@@ -40,8 +40,7 @@ class NodeFactory(Protocol):
         path: Any,
         children: Iterator[_T],
         value: Any = (),
-    ) -> _T:
-        ...
+    ) -> _T: ...
 
 
 ADD = "add"
