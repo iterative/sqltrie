@@ -94,6 +94,7 @@ files = ["src", "tests"]
 
 [tool.codespell]
 ignore-words-list = "datas"
+skip = "CODE_OF_CONDUCT.rst"
 
 [tool.sqlfluff.core]
 dialect = "sqlite"
