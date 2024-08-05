@@ -21,7 +21,7 @@ classifiers = [
 requires-python = ">=3.8"
 dynamic = ["version"]
 dependencies = [
-    "attrs",
+    "attrs>=22.2.0",
     # NOTE: orjson doesn't support pypy, see
     # https://github.com/ijl/orjson/issues/90
     "orjson; implementation_name=='cpython'",
