@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS nodes (
 );
 CREATE INDEX IF NOT EXISTS nodes_pid_idx ON nodes (pid);
 INSERT OR IGNORE INTO nodes (id, pid, name, has_value, value)
-VALUES (1, NULL, "", 0, NULL);
+VALUES (1, NULL, '', 0, NULL);
