@@ -24,34 +24,33 @@ jobs:
         pyv: ['3.9', '3.10', '3.11', '3.12', '3.13']
 
     steps:
-    - name: Check out the repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Set up Python ${{ matrix.pyv }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.pyv }}
-        allow-prereleases: true
+      - name: Set up Python ${{ matrix.pyv }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.pyv }}
 
-    - name: Upgrade pip and nox
-      run: |
-        python -m pip install --upgrade pip nox
-        pip --version
-        nox --version
+      - name: Upgrade pip and nox
+        run: |
+          python -m pip install --upgrade pip nox
+          pip --version
+          nox --version
 
-    - name: Lint code
-      run: nox -s lint
+      - name: Lint code
+        run: nox -s lint
 
-    - name: Run tests
-      run: nox -s tests-${{ matrix.nox_pyv || matrix.pyv }} -- --cov-report=xml
+      - name: Run tests
+        run: nox -s tests-${{ matrix.pyv }} -- --cov-report=xml
 
-    - name: Upload coverage report
-      uses: codecov/codecov-action@v3.1.4
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v5
 
-    - name: Run benchmarks
-      run: nox -s bench
+      - name: Run benchmarks
+        run: nox -s bench
 
-    - name: Build package
-      run: nox -s build
+      - name: Build package
+        run: nox -s build
