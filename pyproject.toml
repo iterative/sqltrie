@@ -2,31 +2,29 @@
 requires = ["setuptools>=48", "setuptools_scm[toml]>=6.3.1"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools_scm]
-
 [project]
 name = "sqltrie"
 description = "SQL-based prefix tree inspired by pygtrie and python-diskcache"
 readme = "README.rst"
 license = {text = "Apache-2.0"}
-authors = [{ name = "Ruslan Kuprieiev", email = "ruslan@iterative.ai" }]
+authors = [{name = "Ruslan Kuprieiev", email = "ruslan@iterative.ai"}]
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Development Status :: 1 - Planning",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Development Status :: 1 - Planning"
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dynamic = ["version"]
 dependencies = [
-    "attrs>=22.2.0",
-    # NOTE: orjson doesn't support pypy, see
-    # https://github.com/ijl/orjson/issues/90
-    "orjson; implementation_name=='cpython'",
-    "pygtrie",
+  "attrs>=22.2.0",
+  # NOTE: orjson doesn't support pypy, see
+  # https://github.com/ijl/orjson/issues/90
+  "orjson; implementation_name=='cpython'",
+  "pygtrie"
 ]
 
 [project.urls]
@@ -35,21 +33,23 @@ Source = "https://github.com/efiop/sqltrie"
 
 [project.optional-dependencies]
 tests = [
-    "pytest==7.2.0",
-    "pytest-sugar==0.9.5",
-    "pytest-cov==3.0.0",
-    "pytest-mock==3.8.2",
-    "mypy==0.971",
-    "pytest-benchmark",
-    "pyinstaller",
+  "pyinstaller",
+  "pytest>=7,<9",
+  "pytest-benchmark",
+  "pytest-cov>=4.1.0",
+  "pytest-mock",
+  "pytest-sugar"
 ]
 dev = [
-    "sqltrie[tests]",
+  "sqltrie[tests]",
+  "mypy==1.15.0"
 ]
 
 [project.entry-points.pyinstaller40]
 hook-dirs = "sqltrie.__pyinstaller:get_hook_dirs"
 tests = "sqltrie.__pyinstaller:get_PyInstaller_tests"
+
+[tool.setuptools_scm]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -68,13 +68,13 @@ source = ["src", "*/site-packages"]
 [tool.coverage.report]
 show_missing = true
 exclude_lines = [
-    "pragma: no cover",
-    "if __name__ == .__main__.:",
-    "if typing.TYPE_CHECKING:",
-    "if TYPE_CHECKING:",
-    "raise NotImplementedError",
-    "raise AssertionError",
-    "@overload",
+  "pragma: no cover",
+  "if __name__ == .__main__.:",
+  "if typing.TYPE_CHECKING:",
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+  "raise AssertionError",
+  "@overload"
 ]
 
 [tool.mypy]
@@ -119,3 +119,76 @@ ignore_words = ["name", "value", "depth"]
 [tool.sqlfluff.rules.L063]
 # Data Types
 extended_capitalisation_policy = "upper"
+
+[tool.ruff]
+output-format = "full"
+show-fixes = true
+
+[tool.ruff.lint]
+ignore = [
+  "ISC001",  # single-line-implicit-string-concatenation
+  "PLR2004",  # magic-value-comparison
+  "PLW2901",  # redefined-loop-name
+  "RET501",  # unnecessary-return-none
+  "RET502",  # implicit-return-value
+  "RET503",  # implicit-return
+  "S101",  # assert
+  "SIM105",  # suppressible-exception
+  "SIM108",  # if-else-block-instead-of-if-exp
+  "SIM117"  # multiple-with-statements
+]
+select = [
+  "A",  # flake8-buitlins
+  "ASYNC",  # flake8-async
+  "B",  # flake8-bugbear
+  "BLE",  # flake8-blind-except
+  "C4",  # flake8-comprehensions
+  "C90",  # mccabe
+  "DTZ",  # flake8-datetimez
+  "E",  # pycodestyle - Error
+  "EXE",  # flake8-executable
+  "F",  # pyflakes
+  "FLY",  # flynt-rules
+  "G",  # flake8-logging-format
+  "I",  # isort
+  "ICN",  # flake8-import-conventions
+  "INP",  # flake8-no-pep420
+  "ISC",  # flake8-implicit-str-concat
+  "N",  # pep8-naming
+  "PERF101",  # perflint
+  "PGH",  # pygrep-hooks
+  "PIE",  # flake8-pie
+  "PL",  # pylint
+  "PT",  # flake8-pytest-style
+  "PYI",  # flake8-pyi
+  "Q",  # flae8-quotes
+  "RET",  # flake8-return
+  "RSE",  # flake8-raise
+  "RUF",  # ruff
+  "S",  # flake8-bandit
+  "SIM",  # flake8-simplify
+  "SLOT",  # flake8-slots
+  "T10",  # flake8-debugger
+  "T20",  # flake8-print
+  "TCH",  # flake8-type-checking
+  "TCH",  # flake8-type-checking
+  "TID",  # flake8-tidy-imports
+  "UP",  # pyupgrade
+  "W",  # pycodestyle - Warning
+  "YTT"  # flake8-2020
+]
+
+[tool.ruff.lint.flake8-pytest-style]
+parametrize-names-type = "csv"
+
+[tool.ruff.lint.per-file-ignores]
+"noxfile.py" = ["D", "PTH"]
+"tests/**" = ["S", "ARG001", "ARG002", "ANN"]
+"docs/**" = ["INP"]
+"src/sqltrie/__pyinstaller/**" = ["N999"]
+
+[tool.ruff.lint.flake8-type-checking]
+strict = true
+
+[tool.ruff.lint.isort]
+known-first-party = ["sqltrie"]

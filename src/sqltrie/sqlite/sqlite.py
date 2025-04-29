@@ -1,12 +1,13 @@
 import sqlite3
 import threading
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 from uuid import uuid4
 
 from attrs import define
 
-from ..trie import (
+from sqltrie.trie import (
     AbstractTrie,
     Change,
     NodeFactory,
@@ -69,7 +70,7 @@ class _SQLiteTrieNode:
         for row in conn.execute(  # nosec
             f"""
             SELECT * FROM nodes WHERE nodes.pid == ? {limit_sql}
-            """,
+            """,  # noqa: S608
             (self.id,),
         ).fetchall():
             yield _SQLiteTrieNode(**row)
@@ -80,26 +81,26 @@ class _SQLiteTrieNode:
         node_factory: NodeFactory,
         key: TrieKey,
     ):
-        def children() -> Iterator[Tuple[TrieKey, bytes]]:
+        def children() -> Iterator[tuple[TrieKey, bytes]]:
             for node in self.get_children(conn):
-                yield node.traverse(conn, node_factory, key + (node.name,))
+                yield node.traverse(conn, node_factory, (*key, node.name))
 
-        args: List[Any] = [None, key, children()]
+        args: list[Any] = [None, key, children()]
         if self.has_value:
             args.append(self.value)
         return node_factory(*args)
 
     def iterate(
         self, conn: sqlite3.Connection, key: TrieKey, shallow: bool = False
-    ) -> Iterator[Tuple[TrieKey, bytes]]:
+    ) -> Iterator[tuple[TrieKey, bytes]]:
         stack = [(key, self)]
         while stack:
             node_key, node = stack.pop()
             if node.has_value:
-                yield node_key, node.value  # type: ignore
+                yield node_key, node.value  # type: ignore[misc]
             if not (shallow and node.has_value):
                 stack.extend(
-                    (node_key + (child.name,), child)
+                    ((*node_key, child.name), child)
                     for child in node.get_children(conn)
                 )
 
@@ -190,7 +191,7 @@ class SQLiteTrie(AbstractTrie):
         path = "/".join(key).replace("'", "''")
         self._conn.executescript(STEPS_SQL.format(path=path, root=self._root_id))
 
-        return self._conn.execute(f"SELECT * FROM {STEPS_TABLE}").fetchall()  # nosec
+        return self._conn.execute(f"SELECT * FROM {STEPS_TABLE}").fetchall()  # nosec  # noqa: S608
 
     def _get_node(self, key):
         if not key:
@@ -215,7 +216,7 @@ class SQLiteTrie(AbstractTrie):
         return self._conn.execute(  # nosec
             f"""
             SELECT * FROM nodes WHERE nodes.pid == ? {limit_sql}
-            """,
+            """,  # noqa: S608
             (node["id"],),
         ).fetchall()
 
@@ -287,7 +288,7 @@ class SQLiteTrie(AbstractTrie):
                 continue
 
             yield (
-                tuple(row["path"].split("/")),  # type: ignore
+                tuple(row["path"].split("/")),
                 row["value"],
             )
 
@@ -300,7 +301,7 @@ class SQLiteTrie(AbstractTrie):
             ret = step
         return ret
 
-    def view(  # type: ignore
+    def view(
         self,
         key: Optional[TrieKey] = None,
     ) -> "SQLiteTrie":
@@ -350,13 +351,11 @@ class SQLiteTrie(AbstractTrie):
         self, key: TrieKey, with_values: Optional[bool] = False
     ) -> Iterator[Union[TrieKey, TrieNode]]:
         if with_values:
-            yield from (  # type: ignore
+            yield from (  # type: ignore[misc]
                 ((*key, row["name"]), row["value"]) for row in self._get_children(key)
             )
         else:
-            yield from (  # type: ignore
-                (*key, row["name"]) for row in self._get_children(key)
-            )
+            yield from ((*key, row["name"]) for row in self._get_children(key))
 
     def traverse(self, node_factory: NodeFactory, prefix: Optional[TrieKey] = None):
         key = prefix or ()
@@ -375,7 +374,7 @@ class SQLiteTrie(AbstractTrie):
             )
         )
 
-        rows = self._conn.execute(f"SELECT * FROM {DIFF_TABLE}")  # nosec
+        rows = self._conn.execute(f"SELECT * FROM {DIFF_TABLE}")  # nosec  # noqa: S608
         yield from (
             Change(
                 row["type"],

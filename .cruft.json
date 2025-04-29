@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/iterative/py-template",
-  "commit": "15ee26df315020399731c6291d61bef81a3fc5d3",
+  "commit": "216e62a30e40174ac5c554b9d2418fceddfe6154",
   "checkout": null,
   "context": {
     "cookiecutter": {
@@ -16,7 +16,8 @@
       "docs": "False",
       "short_description": "SQL-based prefix tree inspired by pygtrie and python-diskcache",
       "development_status": "Development Status :: 1 - Planning",
-      "_template": "https://github.com/iterative/py-template"
+      "_template": "https://github.com/iterative/py-template",
+      "_commit": "216e62a30e40174ac5c554b9d2418fceddfe6154"
     }
   },
   "directory": null

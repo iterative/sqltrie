@@ -13,7 +13,6 @@ repos:
         args: ['--assume-in-merge']
       - id: check-toml
       - id: check-yaml
-      - id: debug-statements
       - id: end-of-file-fixer
       - id: mixed-line-ending
         args: ['--fix=lf']
@@ -30,11 +29,13 @@ repos:
     hooks:
       - id: codespell
         additional_dependencies: ["tomli"]
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.1
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.14.0
     hooks:
-      - id: pyupgrade
-        args: [--py38-plus]
+      - id: pretty-format-toml
+        args: [--autofix, --no-sort]
+      - id: pretty-format-yaml
+        args: [--autofix, --indent, '2', '--offset', '2', --preserve-quotes]
 # NOTE: temporarily skipped
 #  - repo: https://github.com/sqlfluff/sqlfluff
 #    rev: 1.4.2

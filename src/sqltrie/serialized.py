@@ -71,7 +71,7 @@ class SerializedTrie(AbstractTrie):
         raw_trie = self._trie.view(key)
         trie = type(self)()
         # pylint: disable-next=protected-access
-        trie._trie = raw_trie  # type: ignore
+        trie._trie = raw_trie  # type: ignore[misc]
         return trie
 
     def items(self, *args, **kwargs):

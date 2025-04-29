@@ -21,4 +21,4 @@ def test_pyi_hook_sqltrie(tmp_path):
             str(app),
         ],
     )
-    subprocess.run([str(distpath / app_name / app_name)], check=True)  # nosec
+    subprocess.run([str(distpath / app_name / app_name)], check=True)  # noqa: S603
