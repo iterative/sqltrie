@@ -7,7 +7,6 @@ name = "sqltrie"
 description = "SQL-based prefix tree inspired by pygtrie and python-diskcache"
 readme = "README.rst"
 license = "Apache-2.0"
-license-files = ["LICENSE"]
 authors = [{name = "Ruslan Kuprieiev", email = "ruslan@iterative.ai"}]
 classifiers = [
   "Programming Language :: Python :: 3",
