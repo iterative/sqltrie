@@ -26,7 +26,8 @@ dependencies = [
   # NOTE: orjson doesn't support pypy, see
   # https://github.com/ijl/orjson/issues/90
   "orjson; implementation_name=='cpython'",
-  "pygtrie"
+  "pygtrie<2.6.0; python_version <= '3.10'",
+  "pygtrie; python_version > '3.10'",
 ]
 
 [project.urls]
