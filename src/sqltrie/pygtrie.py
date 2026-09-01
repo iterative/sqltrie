@@ -73,7 +73,7 @@ class PyGTrie(AbstractTrie):
 
     def longest_prefix(self, key):
         ret = self._trie.longest_prefix(key)
-        if ret == pygtrie.Trie._NONE_STEP:
+        if not ret:
             return None
         return tuple(ret)
 
